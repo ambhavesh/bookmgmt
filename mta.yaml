@@ -1,0 +1,137 @@
+_schema-version: '3.1'
+ID: zbookshop
+description: A simple CAP project.
+version: 1.0.0
+modules:
+  - name: zbookshop-srv
+    type: nodejs
+    path: gen/srv
+    requires:
+      - name: zbookshop-auth
+      - name: zbookshop-db
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: '${default-url}'
+    parameters:
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm
+  - name: zbookshop-db-deployer
+    type: hdb
+    path: gen/db
+    requires:
+      - name: zbookshop-db
+    parameters:
+      buildpack: nodejs_buildpack
+  - name: zbookshop-destination-content
+    type: com.sap.application.content
+    requires:
+      - name: zbookshop-destination-service
+        parameters:
+          content-target: true
+      - name: zbookshop_html_repo_host
+        parameters:
+          service-key:
+            name: zbookshop_html_repo_host-key
+      - name: zbookshop-auth
+        parameters:
+          service-key:
+            name: zbookshop-auth-key
+    parameters:
+      content:
+        instance:
+          destinations:
+            - Name: bkshpar_zbookshop_html_repo_host
+              ServiceInstanceName: zbookshop-html5-app-host-service
+              ServiceKeyName: zbookshop_html_repo_host-key
+              sap.cloud.service: bkshpar
+            - Authentication: OAuth2UserTokenExchange
+              Name: bkshpar_zbookshop_auth
+              ServiceInstanceName: zbookshop-auth
+              ServiceKeyName: zbookshop-auth-key
+              sap.cloud.service: bkshpar
+          existing_destinations_policy: ignore
+    build-parameters:
+      no-source: true
+  - name: zbookshop-app-content
+    type: com.sap.application.content
+    path: .
+    requires:
+      - name: zbookshop_html_repo_host
+        parameters:
+          content-target: true
+    build-parameters:
+      build-result: resources
+      requires:
+        - artifacts:
+            - bookmgmt.zip
+          name: bookmgmt
+          target-path: resources/
+  - name: bookmgmt
+    type: html5
+    path: app/bookmgmt
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - 'npm run build:cf'
+      supported-platforms:
+        []
+resources:
+  - name: zbookshop-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      config:
+        tenant-mode: dedicated
+        xsappname: 'zbookshop-${org}-${space}'
+      path: ./xs-security.json
+      service: xsuaa
+      service-plan: application
+  - name: zbookshop-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+  - name: zbookshop-destination-service
+    type: org.cloudfoundry.managed-service
+    parameters:
+      config:
+        HTML5Runtime_enabled: true
+        init_data:
+          instance:
+            destinations:
+              - Authentication: NoAuthentication
+                Name: ui5
+                ProxyType: Internet
+                Type: HTTP
+                URL: 'https://ui5.sap.com'
+              - Authentication: NoAuthentication
+                HTML5.DynamicDestination: true
+                HTML5.ForwardAuthToken: true
+                Name: zbookshop-srv-api
+                ProxyType: Internet
+                Type: HTTP
+                URL: '~{srv-api/srv-url}'
+            existing_destinations_policy: update
+        version: 1.0.0
+      service: destination
+      service-name: zbookshop-destination-service
+      service-plan: lite
+    requires:
+      - name: srv-api
+  - name: zbookshop_html_repo_host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-name: zbookshop-html5-app-host-service
+      service-plan: app-host
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npx cds build --production

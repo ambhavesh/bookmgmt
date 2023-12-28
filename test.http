@@ -1,0 +1,7 @@
+GET http://localhost:4004/odata/Books
+Authorization: Basic Bhavesh:b12345
+
+###
+
+GET http://localhost:4004/odata/Books
+Authorization: Basic Uddhav:u12345

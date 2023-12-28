@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+    <edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/Common.xml">
+        <edmx:Include Alias="Common" Namespace="com.sap.vocabularies.Common.v1"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Core.V1.xml">
+        <edmx:Include Alias="Core" Namespace="Org.OData.Core.V1"/>
+    </edmx:Reference>
+    <edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/UI.xml">
+        <edmx:Include Alias="UI" Namespace="com.sap.vocabularies.UI.v1"/>
+    </edmx:Reference>
+    <edmx:DataServices>
+        <Schema Namespace="zbookshop.srv.service.zbookshopsrv" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+            <EntityContainer Name="EntityContainer">
+                <EntitySet Name="Books" EntityType="zbookshop.srv.service.zbookshopsrv.Books">
+                    <NavigationPropertyBinding Path="WRITTEN_BY" Target="Author"/>
+                    <NavigationPropertyBinding Path="SiblingEntity" Target="Books"/>
+                </EntitySet>
+                <EntitySet Name="Author" EntityType="zbookshop.srv.service.zbookshopsrv.Author">
+                    <NavigationPropertyBinding Path="HAS_BOOK" Target="Books"/>
+                </EntitySet>
+            </EntityContainer>
+            <EntityType Name="Books">
+                <Key>
+                    <PropertyRef Name="BOOK_ID"/>
+                    <PropertyRef Name="IsActiveEntity"/>
+                </Key>
+                <Property Name="BOOK_ID" Type="Edm.Int32" Nullable="false"/>
+                <Property Name="BOOK_NAME" Type="Edm.String"/>
+                <Property Name="BOOK_PRICE" Type="Edm.String"/>
+                <NavigationProperty Name="WRITTEN_BY" Type="zbookshop.srv.service.zbookshopsrv.Author" Partner="HAS_BOOK">
+                    <ReferentialConstraint Property="WRITTEN_BY_AUTHOR_ID" ReferencedProperty="AUTHOR_ID"/>
+                </NavigationProperty>
+                <Property Name="WRITTEN_BY_AUTHOR_ID" Type="Edm.Int32"/>
+                <Property Name="IsActiveEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="true"/>
+                <Property Name="HasActiveEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="false"/>
+                <Property Name="HasDraftEntity" Type="Edm.Boolean" Nullable="false" DefaultValue="false"/>
+                <NavigationProperty Name="DraftAdministrativeData" Type="zbookshop.srv.service.zbookshopsrv.DraftAdministrativeData" ContainsTarget="true"/>
+                <NavigationProperty Name="SiblingEntity" Type="zbookshop.srv.service.zbookshopsrv.Books"/>
+            </EntityType>
+            <EntityType Name="Author">
+                <Key>
+                    <PropertyRef Name="AUTHOR_ID"/>
+                </Key>
+                <Property Name="AUTHOR_ID" Type="Edm.Int32" Nullable="false"/>
+                <Property Name="AUTHOR_NAME" Type="Edm.String"/>
+                <Property Name="NATIONALITY" Type="Edm.String"/>
+                <NavigationProperty Name="HAS_BOOK" Type="zbookshop.srv.service.zbookshopsrv.Books" Partner="WRITTEN_BY">
+                    <ReferentialConstraint Property="AUTHOR_ID" ReferencedProperty="WRITTEN_BY_AUTHOR_ID"/>
+                </NavigationProperty>
+            </EntityType>
+            <EntityType Name="DraftAdministrativeData">
+                <Key>
+                    <PropertyRef Name="DraftUUID"/>
+                </Key>
+                <Property Name="DraftUUID" Type="Edm.Guid" Nullable="false"/>
+                <Property Name="CreationDateTime" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="CreatedByUser" Type="Edm.String" MaxLength="256"/>
+                <Property Name="DraftIsCreatedByMe" Type="Edm.Boolean"/>
+                <Property Name="LastChangeDateTime" Type="Edm.DateTimeOffset" Precision="7"/>
+                <Property Name="LastChangedByUser" Type="Edm.String" MaxLength="256"/>
+                <Property Name="InProcessByUser" Type="Edm.String" MaxLength="256"/>
+                <Property Name="DraftIsProcessedByMe" Type="Edm.Boolean"/>
+            </EntityType>
+            <Action Name="draftPrepare" IsBound="true" EntitySetPath="in">
+                <Parameter Name="in" Type="zbookshop.srv.service.zbookshopsrv.Books"/>
+                <Parameter Name="SideEffectsQualifier" Type="Edm.String"/>
+                <ReturnType Type="zbookshop.srv.service.zbookshopsrv.Books"/>
+            </Action>
+            <Action Name="draftActivate" IsBound="true" EntitySetPath="in">
+                <Parameter Name="in" Type="zbookshop.srv.service.zbookshopsrv.Books"/>
+                <ReturnType Type="zbookshop.srv.service.zbookshopsrv.Books"/>
+            </Action>
+            <Action Name="draftEdit" IsBound="true" EntitySetPath="in">
+                <Parameter Name="in" Type="zbookshop.srv.service.zbookshopsrv.Books"/>
+                <Parameter Name="PreserveChanges" Type="Edm.Boolean"/>
+                <ReturnType Type="zbookshop.srv.service.zbookshopsrv.Books"/>
+            </Action>
+            <Annotations Target="zbookshop.srv.service.zbookshopsrv.EntityContainer/Books">
+                <Annotation Term="Common.DraftRoot">
+                    <Record Type="Common.DraftRootType">
+                        <PropertyValue Property="ActivationAction" String="zbookshop.srv.service.zbookshopsrv.draftActivate"/>
+                        <PropertyValue Property="EditAction" String="zbookshop.srv.service.zbookshopsrv.draftEdit"/>
+                        <PropertyValue Property="PreparationAction" String="zbookshop.srv.service.zbookshopsrv.draftPrepare"/>
+                    </Record>
+                </Annotation>
+            </Annotations>
+            <Annotations Target="zbookshop.srv.service.zbookshopsrv.Books/IsActiveEntity">
+                <Annotation Term="UI.Hidden" Bool="true"/>
+            </Annotations>
+            <Annotations Target="zbookshop.srv.service.zbookshopsrv.Books/HasActiveEntity">
+                <Annotation Term="UI.Hidden" Bool="true"/>
+            </Annotations>
+            <Annotations Target="zbookshop.srv.service.zbookshopsrv.Books/HasDraftEntity">
+                <Annotation Term="UI.Hidden" Bool="true"/>
+            </Annotations>
+            <Annotations Target="zbookshop.srv.service.zbookshopsrv.Books/DraftAdministrativeData">
+                <Annotation Term="UI.Hidden" Bool="true"/>
+            </Annotations>
+            <Annotations Target="zbookshop.srv.service.zbookshopsrv.DraftAdministrativeData">
+                <Annotation Term="Common.Label" String="{i18n>Draft_DraftAdministrativeData}"/>
+                </Annotations>
+                <Annotations Target="zbookshop.srv.service.zbookshopsrv.DraftAdministrativeData/DraftUUID">
+                    <Annotation Term="UI.Hidden" Bool="true"/>
+                    <Annotation Term="Common.Label" String="{i18n>Draft_DraftUUID}"/>
+                    </Annotations>
+                    <Annotations Target="zbookshop.srv.service.zbookshopsrv.DraftAdministrativeData/CreationDateTime">
+                        <Annotation Term="Common.Label" String="{i18n>Draft_CreationDateTime}"/>
+                        </Annotations>
+                        <Annotations Target="zbookshop.srv.service.zbookshopsrv.DraftAdministrativeData/CreatedByUser">
+                            <Annotation Term="Common.Label" String="{i18n>Draft_CreatedByUser}"/>
+                            </Annotations>
+                            <Annotations Target="zbookshop.srv.service.zbookshopsrv.DraftAdministrativeData/DraftIsCreatedByMe">
+                                <Annotation Term="UI.Hidden" Bool="true"/>
+                                <Annotation Term="Common.Label" String="{i18n>Draft_DraftIsCreatedByMe}"/>
+                                </Annotations>
+                                <Annotations Target="zbookshop.srv.service.zbookshopsrv.DraftAdministrativeData/LastChangeDateTime">
+                                    <Annotation Term="Common.Label" String="{i18n>Draft_LastChangeDateTime}"/>
+                                    </Annotations>
+                                    <Annotations Target="zbookshop.srv.service.zbookshopsrv.DraftAdministrativeData/LastChangedByUser">
+                                        <Annotation Term="Common.Label" String="{i18n>Draft_LastChangedByUser}"/>
+                                        </Annotations>
+                                        <Annotations Target="zbookshop.srv.service.zbookshopsrv.DraftAdministrativeData/InProcessByUser">
+                                            <Annotation Term="Common.Label" String="{i18n>Draft_InProcessByUser}"/>
+                                            </Annotations>
+                                            <Annotations Target="zbookshop.srv.service.zbookshopsrv.DraftAdministrativeData/DraftIsProcessedByMe">
+                                                <Annotation Term="UI.Hidden" Bool="true"/>
+                                                <Annotation Term="Common.Label" String="{i18n>Draft_DraftIsProcessedByMe}"/>
+                                                </Annotations>
+                                            </Schema>
+                                        </edmx:DataServices>
+                                    </edmx:Edmx>

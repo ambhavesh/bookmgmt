@@ -1,0 +1,59 @@
+{
+  "name": "zbookshop",
+  "version": "1.0.0",
+  "description": "A simple CAP project.",
+  "repository": "<Add your repository here>",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@sap/cds": "^7",
+    "@sap/cds-hana": "^2",
+    "@sap/xssec": "^3",
+    "express": "^4",
+    "passport": "^0"
+  },
+  "devDependencies": {
+    "@cap-js/sqlite": "^1",
+    "@sap/cds-dk": "^7",
+    "@sap/ux-specification": "^1.120.0",
+    "rimraf": "^3.0.2"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "watch-bookmgmt": "cds watch --open bookmgmt/webapp/index.html?sap-ui-xx-viewCache=false",
+    "undeploy": "cf undeploy zbookshop --delete-services --delete-service-keys --delete-service-brokers",
+    "build": "rimraf resources mta_archives && mbt build --mtar archive",
+    "deploy": "cf deploy mta_archives/zbookshop_1.0.0.mtar"
+  },
+  "cds": {
+    "requires": {
+      "auth": {
+        "kind": "mocked",
+        "users": {
+          "Bhavesh": {
+            "password": "b12345",
+            "roles": [
+              "Admin"
+            ]
+          },
+          "Uddhav": {
+            "password": "u12345",
+            "roles": []
+          }
+        }
+      },
+      "db": "hana",
+      "hana": {
+        "deploy-format": "hdbtable"
+      },
+      "[production]": {
+        "auth": {
+          "kind": "xsuaa"
+        }
+      }
+    }
+  },
+  "sapux": [
+    "app/bookmgmt"
+  ]
+}

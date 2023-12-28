@@ -1,0 +1,17 @@
+{
+    "welcomeFile": "bookmgmt/webapp/index.html",
+    "authenticationMethod": "route",
+    "routes": [
+        {
+            "source": "^/bookmgmt/webapp/(.*)",
+            "target": "$1",
+            "localDir": "bookmgmt/webapp/",
+            "authenticationType": "xsuaa"
+        },
+        {
+            "source": "^/(.*)$",
+            "destination": "srv-api",
+            "authenticationType": "xsuaa"
+        }
+    ]
+}
